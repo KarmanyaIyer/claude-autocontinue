@@ -14,6 +14,12 @@ const _api = (typeof browser !== "undefined") ? browser : chrome;
     'exhausted the tool',
     'tool call limit',
     'continuation needed',
+    'tool limit reached',
+    'limit for this turn',
+    'reached your tool use',
+    'hit the tool use',
+    'continue this response',
+    'resume to continue',
   ];
 
   const POLL_MS             = 2000;
@@ -45,8 +51,26 @@ const _api = (typeof browser !== "undefined") ? browser : chrome;
   let bgWorkerActive    = false;
   let bgTakeoverTimer   = null;
 
+  function getLocal(keys, onData) {
+    let settled = false;
+    const done = (data) => {
+      if (settled) return;
+      settled = true;
+      onData(data || {});
+    };
+
+    try {
+      const maybe = _api.storage.local.get(keys, done);
+      if (maybe && typeof maybe.then === 'function') {
+        maybe.then(done).catch(() => done({}));
+      }
+    } catch {
+      done({});
+    }
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
-  _api.storage.local.get(
+  getLocal(
     ['paused', 'maxContinues', 'continueCount', 'minimizeTokens'],
     (data) => {
       paused         = data.paused         ?? false;
@@ -111,15 +135,27 @@ const _api = (typeof browser !== "undefined") ? browser : chrome;
   // ── DOM helpers ────────────────────────────────────────────────────────────
 
   function pageContainsLimitMessage() {
+    const isContinueAction = (el) => {
+      const label = (
+        el.getAttribute('aria-label') ||
+        el.title ||
+        el.innerText ||
+        el.textContent ||
+        ''
+      ).trim().toLowerCase();
+      return (
+        label === 'continue' ||
+        label.startsWith('continue') ||
+        label === 'resume' ||
+        label.startsWith('resume')
+      );
+    };
+
     // Require a visible Continue button as the primary trigger signal.
     // Do NOT scan all body.innerText: it includes chat history that may merely
     // mention these phrases (e.g. a conversation about this extension itself).
     const continueBtn = [...document.querySelectorAll('button, [role="button"]')]
-      .find(el => {
-        const t = (el.innerText || el.textContent || '').trim();
-        return (t === 'Continue' || t.startsWith('Continue')) &&
-               el.offsetParent !== null; // visible in DOM
-      });
+      .find(el => isContinueAction(el) && el.offsetParent !== null); // visible in DOM
 
     if (!continueBtn) return false;
 
@@ -149,8 +185,19 @@ const _api = (typeof browser !== "undefined") ? browser : chrome;
 
   function findContinueButton() {
     return [...document.querySelectorAll('button, [role="button"]')].find(el => {
-      const t = (el.innerText || el.textContent || '').trim();
-      return t === 'Continue' || t.startsWith('Continue');
+      const label = (
+        el.getAttribute('aria-label') ||
+        el.title ||
+        el.innerText ||
+        el.textContent ||
+        ''
+      ).trim().toLowerCase();
+      return (
+        label === 'continue' ||
+        label.startsWith('continue') ||
+        label === 'resume' ||
+        label.startsWith('resume')
+      );
     });
   }
 

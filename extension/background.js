@@ -115,17 +115,35 @@ function detectLimitMessage() {
     'exhausted the tool',
     'tool call limit',
     'continuation needed',
+    'tool limit reached',
+    'limit for this turn',
+    'reached your tool use',
+    'hit the tool use',
+    'continue this response',
+    'resume to continue',
   ];
+
+  const isContinueAction = (el) => {
+    const label = (
+      el.getAttribute('aria-label') ||
+      el.title ||
+      el.innerText ||
+      el.textContent ||
+      ''
+    ).trim().toLowerCase();
+    return (
+      label === 'continue' ||
+      label.startsWith('continue') ||
+      label === 'resume' ||
+      label.startsWith('resume')
+    );
+  };
 
   // Require a visible Continue button as the primary trigger signal.
   // Checking body.innerText alone causes false positives when chat history
   // merely mentions these phrases (e.g. a conversation about this extension).
   const continueBtn = [...document.querySelectorAll('button, [role="button"]')]
-    .find(el => {
-      const t = (el.innerText || el.textContent || '').trim();
-      return (t === 'Continue' || t.startsWith('Continue')) &&
-             el.offsetParent !== null; // visible in the DOM
-    });
+    .find(el => isContinueAction(el) && el.offsetParent !== null); // visible in the DOM
 
   if (!continueBtn) return false;
 
@@ -156,11 +174,24 @@ function detectLimitMessage() {
 }
 
 function clickContinueButton() {
+  const isContinueAction = (el) => {
+    const label = (
+      el.getAttribute('aria-label') ||
+      el.title ||
+      el.innerText ||
+      el.textContent ||
+      ''
+    ).trim().toLowerCase();
+    return (
+      label === 'continue' ||
+      label.startsWith('continue') ||
+      label === 'resume' ||
+      label.startsWith('resume')
+    );
+  };
+
   const btn = [...document.querySelectorAll('button, [role="button"]')]
-    .find(el => {
-      const t = (el.innerText || el.textContent || '').trim();
-      return t === 'Continue' || t.startsWith('Continue');
-    });
+    .find(el => isContinueAction(el));
   if (btn) {
     btn.click();
     return true;

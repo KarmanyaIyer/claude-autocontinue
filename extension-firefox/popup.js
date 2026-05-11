@@ -59,14 +59,37 @@ const _api = (typeof browser !== "undefined") ? browser : chrome;
     btnToggle.textContent                = paused ? 'Resume' : 'Pause';
   }
 
+  function getLocal(keys, onData) {
+    let settled = false;
+    const done = (data) => {
+      if (settled) return;
+      settled = true;
+      onData(data || {});
+    };
+
+    try {
+      const maybe = _api.storage.local.get(keys, done);
+      if (maybe && typeof maybe.then === 'function') {
+        maybe.then(done).catch(() => done({}));
+      }
+    } catch {
+      done({});
+    }
+  }
+
   // Safely send a message to the active tab - no-ops if tab is unavailable
   function sendToTab(msg) {
     if (!tab) return;
-    _api.tabs.sendMessage(tab.id, msg).catch(() => {});
+    try {
+      const maybe = _api.tabs.sendMessage(tab.id, msg);
+      if (maybe && typeof maybe.catch === 'function') maybe.catch(() => {});
+    } catch {
+      // no-op
+    }
   }
 
   // Load initial state
-  _api.storage.local.get(
+  getLocal(
     ['paused', 'maxContinues', 'continueCount', 'minimizeTokens'],
     (data) => applyState({
       paused:         data.paused         ?? false,
