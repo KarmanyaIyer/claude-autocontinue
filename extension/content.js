@@ -11,6 +11,12 @@
     'exhausted the tool',
     'tool call limit',
     'continuation needed',
+    'tool limit reached',
+    'limit for this turn',
+    'reached your tool use',
+    'hit the tool use',
+    'continue this response',
+    'resume to continue',
   ];
 
   const POLL_MS             = 2000;
@@ -108,15 +114,27 @@
   // ── DOM helpers ────────────────────────────────────────────────────────────
 
   function pageContainsLimitMessage() {
+    const isContinueAction = (el) => {
+      const label = (
+        el.getAttribute('aria-label') ||
+        el.title ||
+        el.innerText ||
+        el.textContent ||
+        ''
+      ).trim().toLowerCase();
+      return (
+        label === 'continue' ||
+        label.startsWith('continue') ||
+        label === 'resume' ||
+        label.startsWith('resume')
+      );
+    };
+
     // Require a visible Continue button as the primary trigger signal.
     // Do NOT scan all body.innerText: it includes chat history that may merely
     // mention these phrases (e.g. a conversation about this extension itself).
     const continueBtn = [...document.querySelectorAll('button, [role="button"]')]
-      .find(el => {
-        const t = (el.innerText || el.textContent || '').trim();
-        return (t === 'Continue' || t.startsWith('Continue')) &&
-               el.offsetParent !== null; // visible in DOM
-      });
+      .find(el => isContinueAction(el) && el.offsetParent !== null); // visible in DOM
 
     if (!continueBtn) return false;
 
@@ -146,8 +164,19 @@
 
   function findContinueButton() {
     return [...document.querySelectorAll('button, [role="button"]')].find(el => {
-      const t = (el.innerText || el.textContent || '').trim();
-      return t === 'Continue' || t.startsWith('Continue');
+      const label = (
+        el.getAttribute('aria-label') ||
+        el.title ||
+        el.innerText ||
+        el.textContent ||
+        ''
+      ).trim().toLowerCase();
+      return (
+        label === 'continue' ||
+        label.startsWith('continue') ||
+        label === 'resume' ||
+        label.startsWith('resume')
+      );
     });
   }
 

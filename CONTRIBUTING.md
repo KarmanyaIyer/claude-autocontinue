@@ -17,7 +17,7 @@ Thanks for wanting to improve Claude Auto-Continue.
 No build step. The extension is plain HTML, CSS, and JavaScript.
 
 ```bash
-git clone https://github.com/timothy22000/claude-autocontinue
+git clone https://github.com/KarmanyaIyer/claude-autocontinue
 cd claude-autocontinue
 ```
 

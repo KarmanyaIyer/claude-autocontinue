@@ -31,14 +31,14 @@ Claude has an undocumented per-turn tool-call cap (around 20 calls). When it is 
 ### Option A: Clone the repository
 
 ```bash
-git clone https://github.com/timothy22000/claude-autocontinue.git
+git clone https://github.com/KarmanyaIyer/claude-autocontinue.git
 ```
 
 Then follow the steps below for your browser using the cloned folder.
 
 ### Option B: Download a release
 
-Download and unzip the latest release from the [Releases](https://github.com/timothy22000/claude-autocontinue/releases) page, then follow the steps below.
+Download and unzip the latest release from the [Releases](https://github.com/KarmanyaIyer/claude-autocontinue/releases) page, then follow the steps below.
 
 ### Chrome / Edge (Developer Mode)
 
@@ -188,5 +188,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
-
 
